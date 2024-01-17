@@ -30,7 +30,10 @@ async function runMuonApp(request) {
   const muonApp = require(appPath);
   const response = { success: true };
   response.result = await muonApp.onRequest(request);
+  request.data.result = response.result;
+  request.data.timestamp = new Date().getTime();
   response.signParams = muonApp.signParams(request, response.result);
+  console.log('sign params:', response.signParams);
   const appId = BigInt(soliditySha3(`${app}.js`)).toString(10);
   response.signParams = [
     { name: "appId", type: "uint256", value: appId },
@@ -57,7 +60,6 @@ router.get("/", (req, res) => {
 });
 
 router.use("/v1/", async (req, res) => {
-  console.log(req.body);
   try {
     const result = await runMuonApp(req.body);
     if (!result) {
